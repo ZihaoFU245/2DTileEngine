@@ -259,7 +259,7 @@ public class IntroScene extends Scene {
                 // Apply theme and ghost count from save before starting
                 if (getConfig() instanceof CustomConfig cc) {
                     cc.theme = ThemeUtils.forName(pendingLoad.themeName);
-                    cc.ghostNum = Math.max(0, pendingLoad.ghosts.size());
+                    cc.ghostNum = pendingLoad.ghosts.size();
                 }
                 return new SceneTransition.Replace(new GameScene(pendingLoad.seed, pendingLoad));
             } else if (!seedBuffer.isEmpty()) {

@@ -37,7 +37,7 @@ public class GameScene extends Scene {
         this.seed = seed;
     }
 
-    // Alternative constructor used when loading a save: seed + positions
+    // Alternative constructor used when loading a save: seed and positions
     public GameScene(long seed, core.SaveData restore) {
         this.seed = seed;
         this.pendingRestore = restore;
@@ -119,7 +119,7 @@ public class GameScene extends Scene {
         while (ia.hasNextKeyTyped()) {
             char c = ia.getNextKeyTyped();
             if (c == ':') {
-                handOffFocus(); // pause & give focus
+                handOffFocus(); // pause and give focus
                 topBar.beginCommandMode(); // seed ':' into buffer since we consumed it
                 break; // stop processing further this frame (rest typed after focusing goes to TopBar)
             } else if (c == 't' || c == 'T') {
@@ -151,7 +151,7 @@ public class GameScene extends Scene {
     private void updateHoverText(InputAction ia) {
         if (mapLayer == null)
             return;
-        int screenX = ia.mouseTileX(); // screen-space tile coords (0..viewW-1)
+        int screenX = ia.mouseTileX(); // screen-space tile coordinates (0..viewW-1)
         int screenY = ia.mouseTileY();
         if (screenX < 0 || screenX >= getCamera().getWidth() || screenY < 0 || screenY >= getCamera().getHeight()) {
             return; // outside visible viewport
@@ -193,7 +193,7 @@ public class GameScene extends Scene {
         this.triggerBack = true;
     }
 
-    // Exposed for TopBar :S command
+    // Exposed for TopBar ": S" command
     public void saveGame() {
         try {
             core.SaveData data = new core.SaveData();
