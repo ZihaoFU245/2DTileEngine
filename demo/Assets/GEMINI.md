@@ -1,0 +1,1 @@
+Go read AGENTS.md under the same root

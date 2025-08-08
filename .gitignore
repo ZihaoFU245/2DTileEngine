@@ -1,0 +1,35 @@
+# Java
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+*.car
+*.zip
+*.tar.gz
+*.log
+hs_err_pid*
+
+# Package Files
+*.iml
+.classpath
+.project
+.settings/
+.idea/
+out/
+target/
+build/
+
+# VS Code
+.vscode/
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.ipr
+*.iml
+out/
+
+# OS generated files
+Thumbs.db
+.DS_Store
