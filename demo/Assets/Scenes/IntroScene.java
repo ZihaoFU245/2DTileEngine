@@ -6,14 +6,23 @@ import Engine.Scene.Scene;
 import Engine.Scene.SceneTransition;
 import Engine.Utils.TextUtils; // Use the new TextUtils
 
+import core.CustomConfig;
+import core.SaveData;
+import core.SaveGameManager;
+import core.ThemeUtils;
+
 import java.awt.Color;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 public class IntroScene extends Scene {
 
-    // To manage the scene's state
+    // Scene state machine
     private enum State {
         MAIN_MENU,
-        SEED_INPUT
+        SEED_INPUT,
+        LOAD_MENU
     }
 
     private State currentState = State.MAIN_MENU;
@@ -21,16 +30,18 @@ public class IntroScene extends Scene {
     private boolean readyToStart = false;
     private boolean themeSelectionTriggered = false;
 
+    // Load menu state
+    private List<File> saves = new ArrayList<>();
+    private int selectedSave = 0;
+    private SaveData pendingLoad = null;
+
     @Override
     public void onStart() {
-        super.onStart();
         requestRender();
     }
 
     @Override
     public void onResume() {
-        super.onResume();
-        themeSelectionTriggered = false;
         requestRender();
     }
 
@@ -41,6 +52,8 @@ public class IntroScene extends Scene {
 
             if (currentState == State.MAIN_MENU) {
                 handleMainMenuInput(c);
+            } else if (currentState == State.LOAD_MENU) {
+                handleLoadMenuInput(c);
             } else if (currentState == State.SEED_INPUT) {
                 handleSeedInput(c);
             }
@@ -52,15 +65,13 @@ public class IntroScene extends Scene {
     private void handleMainMenuInput(char c) {
         switch (Character.toUpperCase(c)) {
             case 'N':
-                // Switch to seed input mode
                 currentState = State.SEED_INPUT;
                 break;
             case 'L':
-                // Load game functionality (not implemented)
-                // For now, we can just ignore it or add a placeholder message
+                refreshSaves();
+                currentState = State.LOAD_MENU;
                 break;
             case 'Q':
-                // Quit the game
                 System.exit(0);
                 break;
             case 'T':
@@ -70,26 +81,49 @@ public class IntroScene extends Scene {
     }
 
     private void handleSeedInput(char c) {
-        // Backspace
         if (c == '\b' && !seedBuffer.isEmpty()) {
             seedBuffer.deleteCharAt(seedBuffer.length() - 1);
-        }
-        // Enter / Return
-        else if (c == '\n' || c == '\r') {
+        } else if (c == '\n' || c == '\r') { // Enter
             if (!seedBuffer.isEmpty()) {
                 readyToStart = true;
             }
-        }
-        // go back to the main menu
-        else if (c == 'b' || c == 'B') {
+        } else if (c == 'b' || c == 'B') { // Back
             seedBuffer.setLength(0);
             readyToStart = false;
             currentState = State.MAIN_MENU;
-        }
-        // Digits only
-        else if (Character.isDigit(c)) {
+        } else if (Character.isDigit(c)) { // digits only
             seedBuffer.append(c);
         }
+    }
+
+    private void handleLoadMenuInput(char c) {
+        switch (Character.toUpperCase(c)) {
+            case 'W':
+                if (!saves.isEmpty()) selectedSave = (selectedSave - 1 + saves.size()) % saves.size();
+                break;
+            case 'S':
+                if (!saves.isEmpty()) selectedSave = (selectedSave + 1) % saves.size();
+                break;
+            case 'B':
+                currentState = State.MAIN_MENU;
+                break;
+            case '\n':
+            case '\r':
+                if (!saves.isEmpty()) {
+                    try {
+                        pendingLoad = SaveGameManager.read(saves.get(selectedSave));
+                        readyToStart = true;
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                }
+                break;
+        }
+    }
+
+    private void refreshSaves() {
+    saves = SaveGameManager.listSaves();
+        selectedSave = 0;
     }
 
     @Override
@@ -101,6 +135,8 @@ public class IntroScene extends Scene {
             renderMainMenu(r, w, h);
         } else if (currentState == State.SEED_INPUT) {
             renderSeedInput(r, w, h);
+        } else if (currentState == State.LOAD_MENU) {
+            renderLoadMenu(r, w, h);
         }
     }
 
@@ -135,13 +171,45 @@ public class IntroScene extends Scene {
         TextUtils.drawText(r, goBackPrompt, w / 2 - goBackPrompt.length() / 2, h / 4);
     }
 
+    private void renderLoadMenu(Renderer r, int w, int h) {
+        String title = "Load Game";
+        String instructions = "W/S: Navigate, Enter: Load, B: Back";
+        TextUtils.drawText(r, title, w / 2 - title.length() / 2, h * 3 / 4, Color.CYAN);
+        TextUtils.drawText(r, instructions, w / 2 - instructions.length() / 2, h * 3 / 4 - 2, Color.GRAY);
+
+        int listTop = h * 3 / 4 - 5;
+        int maxToShow = Math.min(10, Math.max(1, h / 2));
+        int start = saves.isEmpty() ? 0 : Math.max(0, Math.min(selectedSave - maxToShow / 2, Math.max(0, saves.size() - maxToShow)));
+        int end = Math.min(saves.size(), start + maxToShow);
+        for (int i = start; i < end; i++) {
+            String name = saves.get(i).getName();
+            String line = (i == selectedSave ? "> " : "  ") + name;
+            Color c = (i == selectedSave) ? Color.YELLOW : Color.WHITE;
+            TextUtils.drawText(r, line, w / 2 - Math.min(line.length(), w - 4) / 2, listTop - (i - start), c);
+        }
+        if (saves.isEmpty()) {
+            String none = "No saves in ./" + core.SaveGameManager.SAVE_DIR;
+            TextUtils.drawText(r, none, w / 2 - none.length() / 2, h / 2, Color.LIGHT_GRAY);
+        }
+    }
 
     @Override
     public SceneTransition pollTransition() {
-        if (readyToStart) {
-            long seed = Long.parseLong(seedBuffer.toString());
-            return new SceneTransition.Replace(new GameScene(seed));
+    if (readyToStart) {
+            if (pendingLoad != null) {
+                // Apply theme and ghost count from save before starting
+                if (getConfig() instanceof CustomConfig cc) {
+                    cc.theme = ThemeUtils.forName(pendingLoad.themeName);
+                    cc.ghostNum = Math.max(0, pendingLoad.ghosts.size());
+                }
+                return new SceneTransition.Replace(new GameScene(pendingLoad.seed, pendingLoad));
+            } else if (!seedBuffer.isEmpty()) {
+                long seed = Long.parseLong(seedBuffer.toString());
+                return new SceneTransition.Replace(new GameScene(seed));
+            }
         } else if (themeSelectionTriggered) {
+            // Reset the trigger so we don't immediately re-push after the theme scene pops.
+            themeSelectionTriggered = false;
             return new SceneTransition.Push(new ThemeSelectionScene());
         }
         return null;

@@ -44,7 +44,8 @@ public class TopBar implements MonoBehaviour {
         currScene.requestRender();
     }
 
-    // Called when switching into command mode AFTER ':' was consumed by outer scene.
+    // Called when switching into command mode AFTER ':' was consumed by outer
+    // scene.
     public void beginCommandMode() {
         inputBuffer.setLength(0);
         inputBuffer.append(':');
@@ -88,6 +89,13 @@ public class TopBar implements MonoBehaviour {
             // TODO: Saving logic goes here
             System.exit(0);
         }
+        if (command.equals(":S")) {
+            // Save game
+            if (currScene instanceof GameScene gs) {
+                gs.saveGame();
+            }
+            currScene.requestRender();
+        }
         if (command.equals(":B")) {
             // Go back to an intro scene
             ((GameScene) currScene).triggerBack();
@@ -122,6 +130,8 @@ public class TopBar implements MonoBehaviour {
 
     // Helper static to avoid circular import (Ghost referenced here logically)
     private static class GhostToggleHelper {
-        static void toggle() { Assets.Entities.Ghost.toggleGlobalShowPath(); }
+        static void toggle() {
+            Assets.Entities.Ghost.toggleGlobalShowPath();
+        }
     }
 }

@@ -21,6 +21,10 @@ public class GameScene extends Scene {
     private TopBar topBar;
     private TileMap mapLayer; // store reference for hover lookup
     private final long seed;
+    // Cache for ghost references for saving/loading
+    private final java.util.List<Ghost> ghostCache = new java.util.ArrayList<>();
+    // Optional restore payload when loading from a save
+    private core.SaveData pendingRestore = null;
     private boolean paused = false;
     private boolean triggerWin = false;
     private boolean triggerLost = false;
@@ -30,6 +34,12 @@ public class GameScene extends Scene {
     public GameScene(long seed) {
         /* Game Object should be put in onStart method as possible. */
         this.seed = seed;
+    }
+
+    // Alternative constructor used when loading a save: seed + positions
+    public GameScene(long seed, core.SaveData restore) {
+        this.seed = seed;
+        this.pendingRestore = restore;
     }
 
     @Override
@@ -54,7 +64,7 @@ public class GameScene extends Scene {
         player = new Player(this, playerPos);
         entityLayer.addObject(player);
 
-        // Add Ghosts
+    // Add Ghosts
         Set<Vector2i> walkable = new HashSet<>(MapGenerator.getFloorPositions());
         for (int i = 0; i < NUM_GHOSTS; i++) {
             if (floorPositions.isEmpty()) {
@@ -69,6 +79,7 @@ public class GameScene extends Scene {
             ghost.setShowPath(false); // TODO: Switching can be put in command input;
 
             entityLayer.addObject(ghost);
+            ghostCache.add(ghost);
         }
         // Add Door
         Door door = new Door(this, MapGenerator.getExitPosition());
@@ -81,8 +92,23 @@ public class GameScene extends Scene {
         HUDlayer.addObject(topBar);
         addLayer(HUDlayer);
 
+        // If we're restoring from a save, apply positions now
+        if (pendingRestore != null) {
+            if (player != null) {
+                player.setPosition(new Vector2i(pendingRestore.playerX, pendingRestore.playerY));
+            }
+            int n = Math.min(ghostCache.size(), pendingRestore.ghosts.size());
+            for (int i = 0; i < n; i++) {
+                core.SaveData.SavePos sp = pendingRestore.ghosts.get(i);
+                ghostCache.get(i).setPosition(new Vector2i(sp.x, sp.y));
+            }
+        }
+
         requestRender();
     }
+
+    // --- Save/Load helpers ---
+    public long getSeed() { return seed; }
 
     @Override
     public void update(double dt, InputAction ia) {
@@ -121,6 +147,8 @@ public class GameScene extends Scene {
         super.update(dt, ia);
         updateHoverText(ia);
     }
+
+    // Removed duplicate saveGame() earlier in file; keep single impl below
 
     private void updateHoverText(InputAction ia) {
         if (mapLayer == null)
@@ -165,6 +193,36 @@ public class GameScene extends Scene {
 
     public void triggerBack() {
         this.triggerBack = true;
+    }
+
+    // Exposed for TopBar :S command
+    public void saveGame() {
+        try {
+            core.SaveData data = new core.SaveData();
+            data.savedAtEpochMs = System.currentTimeMillis();
+            data.name = core.SaveGameManager.makeDefaultSaveName();
+            data.width = getConfig().WIDTH;
+            data.height = getConfig().HEIGHT;
+            data.screenWidth = getConfig().SCREEN_WIDTH;
+            data.screenHeight = getConfig().SCREEN_HEIGHT;
+            data.cellSize = getConfig().CELL_SIZE;
+            data.seed = this.seed;
+            if (getConfig() instanceof core.CustomConfig cc && cc.theme != null) {
+                data.themeName = cc.theme.name();
+            }
+            if (player != null) {
+                data.playerX = player.getPosition().x();
+                data.playerY = player.getPosition().y();
+            }
+            for (Ghost g : ghostCache) {
+                Vector2i p = g.getPosition();
+                data.ghosts.add(new core.SaveData.SavePos(p.x(), p.y()));
+            }
+            core.SaveGameManager.write(data, data.name);
+            System.out.println("Saved game: " + data.name);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

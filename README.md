@@ -56,10 +56,10 @@ If you use another shell, adapt the classpath separator (`;` on Windows, `:` on 
 - Demo content: `demo/Assets/*` (Scenes, Entities, Map, Components)
 
 ## Controls (demo)
-- Main menu: N = New, L = Load (placeholder), T = Theme selection, Q = Quit
+- Main menu: N = New, L = Load (list + W/S navigate, Enter load, B back), T = Theme selection, Q = Quit
 - Theme selection: A/D = Prev/Next, Enter = Confirm, B = Back
 - In-game: Hold WASD to move (rate-limited). `:` enters command mode; then:
-  - `:Q` Quit, `:B` Back to intro, `:T` Toggle ghost path overlay
+  - `:S` Save game, `:Q` Quit, `:B` Back to intro, `:T` Toggle ghost path overlay
 - Final scene: R = Replay, Q = Quit
 - Mouse hover shows tile description in the top bar
 
@@ -77,4 +77,5 @@ If you use another shell, adapt the classpath separator (`;` on Windows, `:` on 
 - docs/Extending.md
 - docs/MapGeneration.md
 - docs/Themes.md
+ - Save/Load: Saves are written to `./saves/<timestamp>.json`. Loading is available from the Intro screen via `L`.
 
