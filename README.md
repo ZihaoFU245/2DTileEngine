@@ -79,3 +79,17 @@ If you use another shell, adapt the classpath separator (`;` on Windows, `:` on 
 - docs/Themes.md
  - Save/Load: Saves are written to `./saves/<timestamp>.json`. Loading is available from the Intro screen via `L`.
 
+## Demo Game Play
+<img width="2403" height="1401" alt="image" src="https://github.com/user-attachments/assets/72acfe77-01e3-46a5-90a5-c9b98de55026" />
+Theme Selection !!!
+<img width="2403" height="1401" alt="image" src="https://github.com/user-attachments/assets/69c95cfd-e8f3-4409-81ea-bc63690de2ca" />
+Game Map
+<img width="2403" height="1401" alt="image" src="https://github.com/user-attachments/assets/fb92ca98-9e82-444c-9edf-37c03bc0b668" />
+About to Win
+<img width="2403" height="1401" alt="image" src="https://github.com/user-attachments/assets/2e97c02e-760a-429d-938e-8e6d9f12848e" />
+Main Page
+<img width="2403" height="1401" alt="image" src="https://github.com/user-attachments/assets/cce26d4b-14fc-46a2-83cb-5846ee872594" />
+Load / Save Game
+
+
+
