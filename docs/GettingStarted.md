@@ -3,7 +3,7 @@
 This repository contains a small 2D tile-based engine and a demo game. The engine uses StdDraw from algs4.jar for rendering.
 
 Requirements
-- Java 17+
+- Java 23+
 - The included `lib/algs4.jar`
 
 Build and Run (Windows PowerShell)

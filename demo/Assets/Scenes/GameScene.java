@@ -61,7 +61,7 @@ public class GameScene extends Scene {
         Collections.shuffle(floorPositions);
 
         // Add Player
-        Vector2i playerPos = floorPositions.remove(0);
+        Vector2i playerPos = floorPositions.removeFirst();
         player = new Player(this, playerPos);
         entityLayer.addObject(player);
 
@@ -71,7 +71,7 @@ public class GameScene extends Scene {
             if (floorPositions.isEmpty()) {
                 break;
             }
-            Vector2i ghostPos = floorPositions.remove(0);
+            Vector2i ghostPos = floorPositions.removeFirst();
             Ghost ghost = new Ghost(this, ghostPos);
 
             // ★ 新增依赖注入：可走格 + 目标（玩家） + 是否显示路径
@@ -106,11 +106,6 @@ public class GameScene extends Scene {
         }
 
         requestRender();
-    }
-
-    // --- Save/Load helpers ---
-    public long getSeed() {
-        return seed;
     }
 
     @Override
