@@ -22,7 +22,8 @@ public class IntroScene extends Scene {
     private enum State {
         MAIN_MENU,
         SEED_INPUT,
-        LOAD_MENU
+        LOAD_MENU,
+        CONFIRM_DELETE
     }
 
     private State currentState = State.MAIN_MENU;
@@ -34,6 +35,7 @@ public class IntroScene extends Scene {
     private List<File> saves = new ArrayList<>();
     private int selectedSave = 0;
     private SaveData pendingLoad = null;
+    private String loadMenuMessage = null; // status/info message for load menu
 
     @Override
     public void onStart() {
@@ -54,6 +56,8 @@ public class IntroScene extends Scene {
                 handleMainMenuInput(c);
             } else if (currentState == State.LOAD_MENU) {
                 handleLoadMenuInput(c);
+            } else if (currentState == State.CONFIRM_DELETE) {
+                handleConfirmDeleteInput(c);
             } else if (currentState == State.SEED_INPUT) {
                 handleSeedInput(c);
             }
@@ -100,12 +104,20 @@ public class IntroScene extends Scene {
         switch (Character.toUpperCase(c)) {
             case 'W':
                 if (!saves.isEmpty()) selectedSave = (selectedSave - 1 + saves.size()) % saves.size();
+                loadMenuMessage = null;
                 break;
             case 'S':
                 if (!saves.isEmpty()) selectedSave = (selectedSave + 1) % saves.size();
+                loadMenuMessage = null;
                 break;
             case 'B':
                 currentState = State.MAIN_MENU;
+                break;
+            case 'D':
+                // Go to confirmation screen before deleting
+                if (!saves.isEmpty()) {
+                    currentState = State.CONFIRM_DELETE;
+                }
                 break;
             case '\n':
             case '\r':
@@ -121,8 +133,37 @@ public class IntroScene extends Scene {
         }
     }
 
+    private void handleConfirmDeleteInput(char c) {
+        char u = Character.toUpperCase(c);
+        if (u == 'Y' || u == '\n' || u == '\r') {
+            // Confirm delete
+            if (!saves.isEmpty() && selectedSave >= 0 && selectedSave < saves.size()) {
+                File toDelete = saves.get(selectedSave);
+                String name = toDelete.getName();
+                boolean ok = false;
+                try {
+                    ok = toDelete.delete();
+                } catch (Exception ex) {
+                    // keep ok = false
+                }
+                refreshSaves();
+                if (!saves.isEmpty()) {
+                    selectedSave = Math.min(selectedSave, saves.size() - 1);
+                } else {
+                    selectedSave = 0;
+                }
+                loadMenuMessage = ok ? ("Deleted: " + name) : ("Failed to delete: " + name);
+            }
+            currentState = State.LOAD_MENU;
+        } else if (u == 'N' || u == 'B' || c == 27 /* ESC */) {
+            // Cancel
+            currentState = State.LOAD_MENU;
+            loadMenuMessage = "Deletion cancelled";
+        }
+    }
+
     private void refreshSaves() {
-    saves = SaveGameManager.listSaves();
+        saves = SaveGameManager.listSaves();
         selectedSave = 0;
     }
 
@@ -137,6 +178,8 @@ public class IntroScene extends Scene {
             renderSeedInput(r, w, h);
         } else if (currentState == State.LOAD_MENU) {
             renderLoadMenu(r, w, h);
+        } else if (currentState == State.CONFIRM_DELETE) {
+            renderConfirmDelete(r, w, h);
         }
     }
 
@@ -173,9 +216,12 @@ public class IntroScene extends Scene {
 
     private void renderLoadMenu(Renderer r, int w, int h) {
         String title = "Load Game";
-        String instructions = "W/S: Navigate, Enter: Load, B: Back";
+        String instructions = "W/S: Navigate, Enter: Load, D: Delete, B: Back";
         TextUtils.drawText(r, title, w / 2 - title.length() / 2, h * 3 / 4, Color.CYAN);
         TextUtils.drawText(r, instructions, w / 2 - instructions.length() / 2, h * 3 / 4 - 2, Color.GRAY);
+        if (loadMenuMessage != null && !loadMenuMessage.isEmpty()) {
+            TextUtils.drawText(r, loadMenuMessage, w / 2 - Math.min(loadMenuMessage.length(), w - 4) / 2, h * 3 / 4 - 4, Color.PINK);
+        }
 
         int listTop = h * 3 / 4 - 5;
         int maxToShow = Math.min(10, Math.max(1, h / 2));
@@ -193,9 +239,22 @@ public class IntroScene extends Scene {
         }
     }
 
+    private void renderConfirmDelete(Renderer r, int w, int h) {
+        String title = "Confirm Delete";
+        String fileName = (!saves.isEmpty() && selectedSave >= 0 && selectedSave < saves.size())
+                ? saves.get(selectedSave).getName()
+                : "(none)";
+        String prompt = "Delete '" + fileName + "'?";
+        String actions = "(Y) Yes  (N) No";
+
+        TextUtils.drawText(r, title, w / 2 - title.length() / 2, h / 2 + 4, Color.RED);
+        TextUtils.drawText(r, prompt, w / 2 - prompt.length() / 2, h / 2 + 2, Color.ORANGE);
+        TextUtils.drawText(r, actions, w / 2 - actions.length() / 2, h / 2, Color.GRAY);
+    }
+
     @Override
     public SceneTransition pollTransition() {
-    if (readyToStart) {
+        if (readyToStart) {
             if (pendingLoad != null) {
                 // Apply theme and ghost count from save before starting
                 if (getConfig() instanceof CustomConfig cc) {

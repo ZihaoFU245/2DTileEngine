@@ -2,7 +2,8 @@
 
 Intro Scene
 - N: New Game
-- L: Load (placeholder)
+- L: Load
+-   - In Load menu: W/S to navigate, Enter to load, D to delete, B to back
 - T: Theme selection
 - Q: Quit
 

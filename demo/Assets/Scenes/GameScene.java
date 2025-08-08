@@ -10,6 +10,7 @@ import Engine.Input.InputAction;
 import Engine.Scene.*;
 import Engine.Utils.Vector2i;
 import core.CustomConfig;
+
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -64,7 +65,7 @@ public class GameScene extends Scene {
         player = new Player(this, playerPos);
         entityLayer.addObject(player);
 
-    // Add Ghosts
+        // Add Ghosts
         Set<Vector2i> walkable = new HashSet<>(MapGenerator.getFloorPositions());
         for (int i = 0; i < NUM_GHOSTS; i++) {
             if (floorPositions.isEmpty()) {
@@ -108,7 +109,9 @@ public class GameScene extends Scene {
     }
 
     // --- Save/Load helpers ---
-    public long getSeed() { return seed; }
+    public long getSeed() {
+        return seed;
+    }
 
     @Override
     public void update(double dt, InputAction ia) {

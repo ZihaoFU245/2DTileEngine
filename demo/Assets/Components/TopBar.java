@@ -21,7 +21,7 @@ import Engine.Utils.TextUtils;
  * be processed.
  *
  * @note If ":"is pressed, the keyboard should have the entire focus,
- *       until "enter" is pressed
+ * until "enter" is pressed
  */
 public class TopBar implements MonoBehaviour {
     private boolean hasFocus;
@@ -86,7 +86,9 @@ public class TopBar implements MonoBehaviour {
     private void processCommand() {
         String command = inputBuffer.toString().trim().toUpperCase();
         if (command.equals(":Q")) {
-            // TODO: Saving logic goes here
+            if (currScene instanceof GameScene gs) {
+                gs.saveGame();
+            }
             System.exit(0);
         }
         if (command.equals(":S")) {

@@ -17,7 +17,7 @@ public class FinalScene extends Scene {
         WIN,
         LOST
     }
-    
+
     public FinalScene(STATE state) {
         currState = state;
     }
@@ -65,7 +65,7 @@ public class FinalScene extends Scene {
         String title;
         Color titleColor;
         String message;
-        
+
         if (currState == STATE.WIN) {
             title = "CONGRATULATIONS!";
             titleColor = Color.GREEN;
@@ -81,10 +81,10 @@ public class FinalScene extends Scene {
 
         // Draw title
         TextUtils.drawText(r, title, w / 2 - title.length() / 2, h * 3 / 4, titleColor);
-        
+
         // Draw message
         TextUtils.drawText(r, message, w / 2 - message.length() / 2, h * 3 / 4 - 3);
-        
+
         // Draw options
         TextUtils.drawText(r, replayOption, w / 2 - replayOption.length() / 2, h / 2);
         TextUtils.drawText(r, quitOption, w / 2 - quitOption.length() / 2, h / 2 - 2);
