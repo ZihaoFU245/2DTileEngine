@@ -2,7 +2,7 @@
 
 A lightweight 2D, tile-based engine built on top of StdDraw (algs4). It features a scene stack, fixed-timestep game loop, camera/view-port rendering, spatial-hash collisions, input handling, and a demo game with themes, pathfinding enemies, and a heads-up command bar.
 
-- Language: Java 17+
+- Language: Java 23+
 - Rendering: StdDraw via algs4.jar
 - Entry point (demo): `core.Main`
 
